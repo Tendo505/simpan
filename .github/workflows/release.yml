@@ -1,0 +1,41 @@
+name: Release
+
+# Pushing a tag like v1.0.0 builds the download, checks that it starts and answers, and publishes it.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, check and publish the download
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the download
+        run: ./gradlew distZip --console=plain
+      - name: Check the download runs
+        shell: bash
+        run: |
+          unzip -q build/distributions/simpan-1.0.0.zip -d /tmp/dl
+          /tmp/dl/simpan-1.0.0/bin/simpan run "CREATE TABLE t (id int PRIMARY KEY); INSERT INTO t VALUES (1), (2); SELECT count(*) FROM t;" /tmp/db | tee /tmp/out
+          grep -q "(1 row)" /tmp/out
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > release-notes.md <<'NOTES'
+          A SQL database you can run on your own computer. Needs Java 21 or newer.
+
+          1. Download **simpan-1.0.0.zip** below and unzip it.
+          2. Start the server: `bin/simpan serve` (on Windows: `bin\simpan.bat serve`).
+          3. Connect with `psql -h localhost -U simpan simpan`, or from Java with `jdbc:postgresql://localhost:5432/simpan`.
+
+          Or skip the server and type SQL straight away with `bin/simpan shell`. `bin/simpan bench` runs the benchmark from the README.
+          NOTES
+          gh release create "$GITHUB_REF_NAME" build/distributions/simpan-1.0.0.zip --repo "$GITHUB_REPOSITORY" --title "Simpan $GITHUB_REF_NAME" --notes-file release-notes.md
