@@ -2,6 +2,10 @@
 
 **A SQL database written from scratch in Java.** It has B+tree indexes over slotted pages and a buffer pool, MVCC transactions, a write-ahead log with crash recovery, and a cost-based query planner with `EXPLAIN ANALYZE`. It speaks the PostgreSQL wire protocol, so `psql` and the official PostgreSQL JDBC driver can connect to it. *Simpan* is Malay for "keep" or "store".
 
+<p align="center">
+  <img src="docs/overview.png" width="760" alt="simpan overview: example usage and architecture">
+</p>
+
 [![CI](https://github.com/Tendo505/simpan/actions/workflows/ci.yml/badge.svg)](https://github.com/Tendo505/simpan/actions/workflows/ci.yml)
 Java 21 · no runtime dependencies · about 10,000 lines, plus 1,500 of tests
 
